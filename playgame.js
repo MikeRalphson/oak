@@ -16,18 +16,17 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
+'use strict';
+/*var unquill = require('./unquill.js');*/
 
-#include "unquill.h"
-
-
-void initgame(ushrt zxptr)
+function initgame(zxptr)
 {
-	uchr  n; 
-	ushrt obase;
+	var n; 
+	var obase;
 
-	alsosee = 1;	/* Options possibly set by later games */
-	fileid  = 255;
-	maxcar1 = maxcar;
+	var alsosee = 1;	/* Options possibly set by later games */
+	var fileid  = 255;
+	var maxcar1 = maxcar;
 
 	obase = postab; /* Object initial positions table */
 	for (n = 0; n < 36; n++) flags[n] = 0;
@@ -41,18 +40,18 @@ void initgame(ushrt zxptr)
 }
 
 
-void savegame(void)
+function savegame()
 {
-	uchr xor = fileid, l, n;
-	FILE *savefp;
-	char *result;
-	char filename[255];
+	var xor = fileid, l, n;
+	var savefp;
+	var result;
+	var filename;
 	
 	for (n = 0; n < 37;   n++) xor ^= flags[n];
 	for (n = 0; n < 0xDB; n++) xor ^= objpos[n];
 	opch32('\n');
 	opstr32("Save game to file\n>");
-	result = (console->gets)(filename,255);
+	result = (console.readln(filename,255));
 	if (!result)
 	{
 		return;
@@ -98,18 +97,18 @@ DS 0DBh		;Object locations table, terminated with 0FFh.
 DB xsum		;XOR of all bytes except the 0102h.
 */
 
-void loadgame(void)
+function loadgame()
 {
-	uchr xor=0,l;
-	ushrt n;
-	FILE *loadfp;
-	char *result;
-	char filename[255];
-	uchr savefile[0x104];
+	var xor=0,l;
+	var n;
+	var loadfp;
+	var result;
+	var filename;
+	var savefile = [0x104];
 	
 	opch32('\n');
 	opstr32("Load game from file\n>");
-	result = (console->gets)(filename,255);
+	result = (console.readln(filename,255));
 	if (!result)
 	{
 		return;
@@ -151,7 +150,7 @@ void loadgame(void)
 }
 
 
-char present(uchr obj)
+function present(obj)
 {
 	if ((objpos[obj]==254) || (objpos[obj]==253) || (objpos[obj]==CURLOC))
     		return 1;
@@ -160,24 +159,24 @@ char present(uchr obj)
 
 
 
-void playgame(ushrt zxptr)
+function playgame(zxptr)
 {
-	uchr desc = 1, verb, noun, pn, r, n; 
-	char *lbstart, *result;
-	ushrt connbase;
-	char linebuf[255];
+	var desc = 1, verb, noun, pn, r, n; 
+	var lbstart, result;
+	var connbase;
+	var linebuf = [255];
 
 	def_colours();
-	if (arch == ARCH_SPECTRUM)
+	/*if (arch == ARCH_SPECTRUM)
 	{
-		(console->border)(zmem(ucptr - 1));
-	}
+		(console.border)(zmem(ucptr - 1));
+	}*/
 	lbstart = linebuf;
 	while(1) /* Main loop */
 	{
 		if (desc) 
 		{
-			(console->clrscr)();
+			console.clear();
 			/* 0.7.5: Darkness */
 			if (flags[0] && (!present(0))) 
 			{
@@ -227,7 +226,7 @@ void playgame(ushrt zxptr)
 			opch32('\n');
 			if (dbver == 0) sysmess(28);
 			fflush(stdin);
-			result = (console->gets)(linebuf, 254);
+			result = console.readln(linebuf, 254);
 			if (!result)
 			{
 				return;
@@ -235,7 +234,7 @@ void playgame(ushrt zxptr)
 	
 			while (linebuf[0] == '*')  /* Diagnostics: */
 			{
-				char flgbuf[20];
+				var flgbuf = [20];
 
 				if (linebuf[1]=='F')  /* *F: dump flags */
 					for (n=0; n<36; n++)
@@ -249,7 +248,7 @@ void playgame(ushrt zxptr)
 					sprintf(flgbuf, " O%3.3d:%3.3d ",n,objpos[n]);
 					opstr32(flgbuf);
 				}
-				result = (console->gets)(linebuf,254);
+				result = console.readln(linebuf,254);
 			}
     			TURNLO++;
 			if (TURNLO == 0) TURNHI++;
@@ -257,11 +256,11 @@ void playgame(ushrt zxptr)
 			/* Parse the input */
 	
 			lbstart = linebuf;
-			verb    = matchword(&lbstart);
+			verb    = matchword(lbstart);
 			if (verb != 0xFF)
  			{
  				VERB = verb;
-				noun = matchword(&lbstart);
+				noun = matchword(lbstart);
 				NOUN = noun;
 /* Intended to stop a noun of 0xFF matching everything. But the correct fix
  * is in ffeq(). 
@@ -307,7 +306,7 @@ void playgame(ushrt zxptr)
 
 
 
-uchr cplscmp(ushrt first, char *snd)
+function cplscmp(first, snd)
 {
 	if (((255-(zmem(first++))) & 0x7F) != (snd[0])) return 0;
 	if (((255-(zmem(first++))) & 0x7F) != (snd[1])) return 0;
@@ -319,32 +318,32 @@ uchr cplscmp(ushrt first, char *snd)
 
 
 
-uchr matchword(char **wordbeg)
+function matchword(wordbeg)
 {
 /* Match a word of player input with the vocabulary table */
 
-	ushrt matchp=vocab;
-	char wordbuf[5];
-	int i;
+	var matchp = vocab;
+	var wordbuf = [5];
+	var i;
 
 	wordbuf[4]=0;
 	while(1)
 	{
 		for (i=0; i<4; i++)
 		{
-			wordbuf[i]=(**wordbeg);
+			wordbuf[i]=(wordbeg);
 			if (islower(wordbuf[i])) wordbuf[i] = toupper(wordbuf[i]);	/* (v0.4.1), was munging numbers */
 			if (wordbuf[i]==0)    wordbuf[i]=' ';
 			if (wordbuf[i]=='\n') wordbuf[i]=' ';
 			if (wordbuf[i]=='\r') wordbuf[i]=' ';
-			if (wordbuf[i]==' ')  (*wordbeg)--;
-			(*wordbeg)++;
+			if (wordbuf[i]==' ')  (wordbeg)--;
+			(wordbeg)++;
 		}
-		while ((**wordbeg) 
-		&&     (**wordbeg!='\n')
-		&&     (**wordbeg!='\r')
-		&&     (**wordbeg!=' '))
-			(*wordbeg)++; 
+		while ((wordbeg) 
+		&&     (wordbeg!='\n')
+		&&     (wordbeg!='\r')
+		&&     (wordbeg!=' '))
+			(wordbeg)++; 
 		while (zmem(matchp))
 		{
 			if (cplscmp(matchp,wordbuf))
@@ -355,15 +354,15 @@ uchr matchword(char **wordbeg)
 		}
 		matchp=vocab;
 		
-		if (((**wordbeg)==0)
-		||  ((**wordbeg)=='\r')
-		||  ((**wordbeg)=='\n'))
+		if (((wordbeg)==0)
+		||  ((wordbeg)=='\r')
+		||  ((wordbeg)=='\n'))
 		return 0xFF;
 
-		while ((**wordbeg)==0x20)
+		while ((wordbeg)==0x20)
 		{
-			if ((**wordbeg)==0) return 0xFF;
-			(*wordbeg)++;
+			if ((wordbeg)==0) return 0xFF;
+			(wordbeg)++;
 		}
 	}
 	return 0xFF;
@@ -371,11 +370,11 @@ uchr matchword(char **wordbeg)
 }
 
 
-void listat(uchr locno)
+function listat(locno)
 {
 /* List items at location n */
 	
-	uchr any = 0, n;
+	var any = 0, n;
 
 	for (n=0; n<nobj; n++) if (objpos[n] == locno)
         {
@@ -396,7 +395,7 @@ void listat(uchr locno)
 
 /* input = ID of entered verb / noun
  * tbl   = ID byte to match in table, 0xFF matches any */
-uchr ffeq(uchr input, uchr tbl) 
+function ffeq(input, tbl) 
 {
 	return (uchr)(input == tbl || 0xFF == tbl);
 }
@@ -404,14 +403,14 @@ uchr ffeq(uchr input, uchr tbl)
 
 
 
-uchr doproc (ushrt table, uchr verb, uchr noun)
+function doproc (table, verb, noun)
 {
-	ushrt ccond;
-	uchr done = 0; /* Done returns: 0 for fell off end of table
+	var ccond;
+	var done = 0; /* Done returns: 0 for fell off end of table
                                         1 for DONE
                                         2 for DESC
                                         3 for END (end game) */
-	uchr t, tverb, tnoun, td1 = 0;
+	var t, tverb, tnoun, td1 = 0;
 
 	while ((zmem(table)) && !done)
     	{
@@ -445,20 +444,18 @@ uchr doproc (ushrt table, uchr verb, uchr noun)
 
 
 
-uchr autobj(uchr noun)  /* Find object number for AUTOx actions */
+function autobj(noun)  /* Find object number for AUTOx actions */
 {
-	uchr n;
-
 	if (dbver == 0) return 0xFF;
 	if (noun > 253) return 0xFF;
-	for (n = 0; n < nobj; n++) if (noun == zmem(objmap + n)) return n;
+	for (var n = 0; n < nobj; n++) if (noun == zmem(objmap + n)) return n;
 	return 0xFF;
 }
 
 
-char yesno(void)
+function yesno()
 {
-	char n;
+	var n;
    
 	fflush(stdin);
 	fflush(stdout);
@@ -482,10 +479,10 @@ char yesno(void)
 
 
 
-void sysmess(uchr sysno)
+function sysmess(sysno)
 {
-	uchr  cch = 0;
-	ushrt msgadd;
+	var cch = 0;
+	var msgadd;
 
 	if (dbver > 0) 
 	{	
@@ -503,13 +500,7 @@ void sysmess(uchr sysno)
 	while (cch != 0x1F)
 	{
 		cch = 0xFF - (zmem(msgadd++));
-		expch (cch,&msgadd);
+		expch(cch,msgadd);
 	}
 	def_colours();
 }
-
-
-
-
-
-
